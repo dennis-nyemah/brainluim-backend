@@ -1,0 +1,7 @@
+HostName: dpg-d5n0oore5dus73er0ao0-a
+Port: 5432
+Database: brainluim_db
+Username: brainluim_db_user
+Password: 0wnS8I0vYDuCHpJlXblzADXpJ986pKYg
+Internal Database URL: postgresql://brainluim_db_user:0wnS8I0vYDuCHpJlXblzADXpJ986pKYg@dpg-d5n0oore5dus73er0ao0-a/brainluim_db
+External Database URL: postgresql://brainluim_db_user:0wnS8I0vYDuCHpJlXblzADXpJ986pKYg@dpg-d5n0oore5dus73er0ao0-a.frankfurt-postgres.render.com/brainluim_db
