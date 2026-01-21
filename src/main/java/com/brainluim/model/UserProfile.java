@@ -19,17 +19,20 @@ public class UserProfile {
     private String grade;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    private LocalDateTime updatedAt;
 
     protected UserProfile() {}
 
     public UserProfile(String name, String level, String grade) {
+        this.id = "default-user"; // Explicitly set the ID
         this.name = name;
         this.level = level;
         this.grade = grade;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     // Getters and Setters
