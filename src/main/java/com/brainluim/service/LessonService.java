@@ -21,7 +21,7 @@ public class LessonService {
         this.lessonRepository = lessonRepository;
     }
 
-    public Lesson createLesson(MultipartFile file, String subject) throws IOException {
+    public Lesson createLesson(MultipartFile file, String subject, String userId) throws IOException {
 
         String content = "";
         String fileName = "Unknown";
@@ -49,12 +49,11 @@ public class LessonService {
             throw new IllegalArgumentException("No readable content found in the uploaded file");
         }
 
-        // Validate content length
         if (content.length() < 50) {
             throw new IllegalArgumentException("Content is too short. Please provide more substantial lesson material.");
         }
 
-        Lesson lesson = new Lesson(content, subject, fileName);
+        Lesson lesson = new Lesson(content, subject, fileName, userId);
 
         return lessonRepository.save(lesson);
     }
@@ -62,6 +61,10 @@ public class LessonService {
     public Lesson getLessonById(String id) {
         Optional<Lesson> lesson = lessonRepository.findById(id);
         return lesson.orElse(null);
+    }
+
+    public List<Lesson> getLessonsByUserId(String userId) {
+        return lessonRepository.findByUserId(userId);
     }
 
     public List<Lesson> getAllLessons() {
@@ -80,7 +83,6 @@ public class LessonService {
     private String cleanAndValidateText(String text) {
         if (text == null) return "";
 
-        // Basic text cleaning
         return text.trim()
                 .replaceAll("\\r\\n", "\n")
                 .replaceAll("\\r", "\n")

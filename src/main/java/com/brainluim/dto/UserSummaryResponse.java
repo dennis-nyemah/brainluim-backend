@@ -1,17 +1,13 @@
 package com.brainluim.dto;
 
-public class UserProfileResponse {
+public class UserSummaryResponse {
     private String id;
     private String name;
-    private String level;
-    private String grade;
-    private String avatarColor;  // NEW
+    private String avatarColor;
 
-    public UserProfileResponse(String id, String name, String level, String grade, String avatarColor) {
+    public UserSummaryResponse(String id, String name, String avatarColor) {
         this.id = id;
         this.name = name;
-        this.level = level;
-        this.grade = grade;
         this.avatarColor = avatarColor;
     }
 
@@ -21,12 +17,6 @@ public class UserProfileResponse {
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
-
-    public String getLevel() { return level; }
-    public void setLevel(String level) { this.level = level; }
-
-    public String getGrade() { return grade; }
-    public void setGrade(String grade) { this.grade = grade; }
 
     public String getAvatarColor() { return avatarColor; }
     public void setAvatarColor(String avatarColor) { this.avatarColor = avatarColor; }

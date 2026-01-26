@@ -2,13 +2,14 @@ package com.brainluim.controller;
 
 import com.brainluim.dto.UserProfileRequest;
 import com.brainluim.dto.UserProfileResponse;
+import com.brainluim.exception.InvalidRequestException;
 import com.brainluim.model.UserProfile;
 import com.brainluim.service.UserProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/profile")
+@RequestMapping("/api/v1/profiles")
 public class UserProfileController {
 
     private final UserProfileService userProfileService;
@@ -18,26 +19,33 @@ public class UserProfileController {
     }
 
     @PostMapping
-    public ResponseEntity<UserProfileResponse> createOrUpdateProfile(@RequestBody UserProfileRequest request) {
-        UserProfile profile = userProfileService.createOrUpdateProfile(
+    public ResponseEntity<UserProfileResponse> create(@RequestBody UserProfileRequest request) {
+
+        if (request.getPin() == null || !request.getPin().matches("\\d{6}")) {
+            throw new InvalidRequestException("PIN must be exactly 6 digits");
+        }
+
+        UserProfile profile = userProfileService.createProfile(
                 request.getName(),
                 request.getLevel(),
-                request.getGrade()
+                request.getGrade(),
+                request.getPin()
         );
 
         UserProfileResponse response = new UserProfileResponse(
                 profile.getId(),
                 profile.getName(),
                 profile.getLevel(),
-                profile.getGrade()
+                profile.getGrade(),
+                profile.getAvatarColor()
         );
 
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping
-    public ResponseEntity<UserProfileResponse> getProfile() {
-        UserProfile profile = userProfileService.getProfile();
+    @GetMapping("/{id}")
+    public ResponseEntity<UserProfileResponse> getById(@PathVariable String id) {
+        UserProfile profile = userProfileService.getProfileById(id);
 
         if (profile == null) {
             return ResponseEntity.notFound().build();
@@ -47,14 +55,10 @@ public class UserProfileController {
                 profile.getId(),
                 profile.getName(),
                 profile.getLevel(),
-                profile.getGrade()
+                profile.getGrade(),
+                profile.getAvatarColor()
         );
 
         return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/exists")
-    public ResponseEntity<Boolean> profileExists() {
-        return ResponseEntity.ok(userProfileService.profileExists());
     }
 }

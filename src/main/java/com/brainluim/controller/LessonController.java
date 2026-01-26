@@ -6,18 +6,20 @@ import java.util.List;
 
 import java.util.stream.Collectors;
 
+import com.brainluim.util.JwtUtil;
+
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import com.brainluim.dto.LessonDetailResponse;
 import com.brainluim.dto.LessonResponse;
 import com.brainluim.dto.LessonSummaryResponse;
 
@@ -47,16 +49,19 @@ public class LessonController {
 
     private final LessonService lessonService;
     private final UserProfileService userProfileService;
+    private final JwtUtil jwtUtil;
 
     /**
      * Constructs a new {@link LessonController}.
      *
      * @param lessonService service responsible for lesson persistence and retrieval
      * @param userProfileService service responsible for fetching user profile data
+     * @param jwtUtil utility for JWT token operations
      */
-    public LessonController(LessonService lessonService, UserProfileService userProfileService) {
+    public LessonController(LessonService lessonService, UserProfileService userProfileService, JwtUtil jwtUtil) {
         this.lessonService = lessonService;
         this.userProfileService = userProfileService;
+        this.jwtUtil = jwtUtil;
     }
 
     /**
@@ -64,6 +69,7 @@ public class LessonController {
      *
      * @param file the uploaded lesson file (multipart/form-data)
      * @param subject the subject associated with the lesson
+     * @param authHeader the Authorization header containing the JWT token
      * @return a {@link ResponseEntity} containing the lesson creation response
      * @throws IOException if an error occurs while processing the uploaded file
      * @throws InvalidRequestException if the file is missing or empty
@@ -71,17 +77,31 @@ public class LessonController {
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<LessonResponse> create(
             @RequestParam("lessonFile") MultipartFile file,
-            @RequestParam("subject") String subject) throws IOException {
+            @RequestParam("subject") String subject,
+            @RequestHeader("Authorization") String authHeader) throws IOException {
 
         if (file == null || file.isEmpty()) {
             throw new InvalidRequestException("Please upload a valid file.");
         }
 
-        Lesson lesson = lessonService.createLesson(file, subject);
+        // Extract userId from JWT
+        String token = authHeader.substring(7);
+        String userId = jwtUtil.extractUserId(token);
+
+        Lesson lesson = lessonService.createLesson(file, subject, userId);
+
+        UserProfile profile = userProfileService.getProfileById(userId);
+        String level = profile != null ? profile.getLevel() : "Unknown";
+        String grade = profile != null ? profile.getGrade() : "Unknown";
 
         LessonResponse response = new LessonResponse(
                 lesson.getId(),
-                "Lesson created successfully"
+                lesson.getContent(),
+                lesson.getSubject(),
+                lesson.getFileName(),
+                level,
+                grade,
+                lesson.getUploadTime()
         );
 
         return ResponseEntity.status(201).body(response);
@@ -91,22 +111,30 @@ public class LessonController {
      * Retrieves a lesson by its unique identifier.
      *
      * @param id the lesson ID
+     * @param authHeader the Authorization header containing the JWT token
      * @return a {@link ResponseEntity} containing the detailed lesson information
      * @throws InvalidRequestException if the lesson does not exist
      */
     @GetMapping("/{id}")
-    public ResponseEntity<LessonDetailResponse> getLesson(@PathVariable String id) {
+    public ResponseEntity<LessonResponse> getById(
+            @PathVariable String id,
+            @RequestHeader("Authorization") String authHeader) {
+
         Lesson lesson = lessonService.getLessonById(id);
 
         if (lesson == null) {
             throw new InvalidRequestException("Lesson not found with id: " + id);
         }
 
-        UserProfile profile = userProfileService.getProfile();
+        // Extract userId from JWT
+        String token = authHeader.substring(7);
+        String userId = jwtUtil.extractUserId(token);
+
+        UserProfile profile = userProfileService.getProfileById(userId);
         String level = profile != null ? profile.getLevel() : "Unknown";
         String grade = profile != null ? profile.getGrade() : "Unknown";
 
-        LessonDetailResponse response = new LessonDetailResponse(
+        LessonResponse response = new LessonResponse(
                 lesson.getId(),
                 lesson.getContent(),
                 lesson.getSubject(),
@@ -122,13 +150,19 @@ public class LessonController {
     /**
      * Retrieves all available lessons.
      *
+     * @param authHeader the Authorization header containing the JWT token
      * @return a {@link ResponseEntity} containing a list of lesson summaries
      */
-    @GetMapping("/all")
-    public ResponseEntity<List<LessonSummaryResponse>> getAllLessons() {
-        List<Lesson> lessons = lessonService.getAllLessons();
+    @GetMapping
+    public ResponseEntity<List<LessonSummaryResponse>> getAll(@RequestHeader("Authorization") String authHeader) {
 
-        UserProfile profile = userProfileService.getProfile();
+        // Extract userId from JWT
+        String token = authHeader.substring(7);
+        String userId = jwtUtil.extractUserId(token);
+
+        List<Lesson> lessons = lessonService.getLessonsByUserId(userId);
+
+        UserProfile profile = userProfileService.getProfileById(userId);
         String level = profile != null ? profile.getLevel() : "Unknown";
         String grade = profile != null ? profile.getGrade() : "Unknown";
 

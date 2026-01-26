@@ -23,21 +23,23 @@ public class Lesson {
     @Column(name = "file_name")
     private String fileName;
 
-    @Column(name = "user_id")
-    private String userId = "default-user";
+    @Column(name = "user_id", nullable = false)  // IMPORTANT: Not null
+    private String userId;
 
     @Column(name = "created_at")
     private LocalDateTime uploadTime = LocalDateTime.now();
 
     protected Lesson() {}
 
-    public Lesson(String content, String subject, String fileName) {
+    public Lesson(String content, String subject, String fileName, String userId) {
         this.id = UUID.randomUUID().toString();
         this.content = content;
         this.subject = subject;
         this.fileName = fileName;
+        this.userId = userId;
     }
 
+    // Getters and Setters
     public String getId() { return id; }
 
     public String getContent() { return content; }
@@ -54,15 +56,4 @@ public class Lesson {
 
     public LocalDateTime getUploadTime() { return uploadTime; }
     public void setUploadTime(LocalDateTime uploadTime) { this.uploadTime = uploadTime; }
-
-    public int getContentLength() {
-        return content != null ? content.length() : 0;
-    }
-
-    public String getContentPreview(int maxLength) {
-        if (content == null || content.length() <= maxLength) {
-            return content;
-        }
-        return content.substring(0, maxLength) + "...";
-    }
 }
