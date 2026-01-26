@@ -32,6 +32,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints - no authentication required
+                        .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/api/v1/auth/users").permitAll()           // GET list of users
                         .requestMatchers("/api/v1/auth/users/login").permitAll()     // POST login
                         .requestMatchers("/api/v1/profiles").permitAll()             // POST create profile
